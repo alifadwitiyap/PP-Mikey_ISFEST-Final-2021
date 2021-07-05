@@ -154,7 +154,6 @@ def app():
     trend_negara(df)
     trend_kota(df)
     
-
     st.markdown("### **4. Pembagian Umur Berdasarkan Pekerjaan**")
     st.code('''
     def get_age(born):
