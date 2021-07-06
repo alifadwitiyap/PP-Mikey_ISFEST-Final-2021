@@ -1,4 +1,3 @@
-from matplotlib.pyplot import legend
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -22,10 +21,8 @@ def tren_pekerjaan(df):
     best_country = df["country"].value_counts()[:5].index
     best_occupations = df["occupation"].value_counts().index
 
-    df_top = df[df["country"].isin(
-        best_country) & df['occupation'].isin(best_occupations)]
-    df_occupations = df_top.groupby(["country", "occupation"])[
-        "country"].agg(["count"])
+    df_top = df[df["country"].isin(best_country) & df['occupation'].isin(best_occupations)]
+    df_occupations = df_top.groupby(["country", "occupation"])["country"].agg(["count"])
 
     st.write(df_occupations)
 
@@ -52,13 +49,48 @@ def tren_pekerjaan(df):
 
     occupation = df_top.loc[lambda df: df_top['country'] == choose_country]
     occupation = dict(occupation.occupation.value_counts())
-    occupation = sorted(occupation.items(),
-                        key=lambda item: item[1], reverse=True)
-    occupation = pd.DataFrame(list(occupation), columns=[
-                              "Pekerjaan", "Jumlah"])
+    occupation = sorted(occupation.items(), key=lambda item: item[1], reverse=True)
+    occupation = pd.DataFrame(list(occupation), columns=["Pekerjaan", "Jumlah"])
 
-    fig = px.bar(occupation, x="Jumlah", y="Pekerjaan",
-                 color="Pekerjaan", orientation="h")
+    fig = px.bar(occupation, x="Jumlah", y="Pekerjaan", color="Pekerjaan", text='Jumlah', orientation="h")
+    fig.update_layout(
+        xaxis=dict(
+            tickmode='linear',
+            dtick=1
+        ),
+        showlegend=False,
+        height=600,
+        width=900,
+        title=f"Tren Pekerjaan Pendaftar Berdasarkan Negara {choose_country}",
+    )
+    st.plotly_chart(fig)
+
+
+def tren_institusi(df):
+    st.markdown("### **2. Tren Pekerjaan Berdasarkan 10 Institusi Teratas**")
+    st.code('''
+    best_country = df["country"].value_counts()[:5].index
+    best_occupations = df["occupation"].value_counts().index
+    
+    df_top = df[df["country"].isin(best_country) & df['occupation'].isin(best_occupations)]
+    df_occupations = df_top.groupby(["country", "occupation"])["country"].agg(["count"])
+    ''', language='python')
+
+    best_institution = df["institute"].value_counts()[:10].index
+    best_occupations = df["occupation"].value_counts().index
+
+    df_top = df[df["institute"].isin(best_institution) & df['occupation'].isin(best_occupations)]
+    df_occupations = df_top.groupby(["institute", "occupation"])["institute"].agg(["count"])
+
+    st.write(df_occupations)
+
+    st.code('''
+    occupation = df_top.loc[lambda df: df_top['country'] == choose_country]
+    occupation = dict(occupation.occupation.value_counts())
+    occupation = sorted(occupation.items(), key=lambda item: item[1], reverse=True)
+    occupation = pd.DataFrame(list(occupation), columns=["Pekerjaan", "Jumlah"])
+
+    fig = px.bar(occupation, x="Jumlah", y="Pekerjaan", color="Pekerjaan", orientation="h")
     fig.update_layout(
         xaxis=dict(
             tickmode='linear',
@@ -69,6 +101,26 @@ def tren_pekerjaan(df):
         width=900,
         title=f"Tren Pekerjaan Pendaftar Berdasarkan Negara {choose_country}",
     )
+    ''', language='python')
+
+    choose_institute = st.selectbox('Silahkan Pilih Negara', best_institution)
+
+    occupation = df_top.loc[lambda df: df_top['institute'] == choose_institute]
+    occupation = dict(occupation.occupation.value_counts())
+    occupation = sorted(occupation.items(), key=lambda item: item[1], reverse=True)
+    occupation = pd.DataFrame(list(occupation), columns=["Pekerjaan", "Jumlah"])
+
+    fig = px.bar(occupation, x="Jumlah", y="Pekerjaan", color="Pekerjaan", text='Jumlah', orientation="h")
+    fig.update_layout(
+        xaxis=dict(
+            tickmode='linear',
+            dtick=1
+        ),
+        showlegend=False,
+        height=500,
+        width=900,
+        title=f"Tren Pekerjaan Pendaftar Berdasarkan Institusi {choose_institute}",
+    )
     st.plotly_chart(fig)
 
 def app():
@@ -77,5 +129,4 @@ def app():
     st.markdown("## **Non-Challenge Exploration**")
 
     tren_pekerjaan(df)
-
-    
+    tren_institusi(df)        

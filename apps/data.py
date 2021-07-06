@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-
+import io
 
 @st.cache
 def load_data():
@@ -14,7 +14,11 @@ def app():
 
     # Show Dataset
     st.markdown("### **Import Dataset DQthon**")
-    st.code('''import pandas as pd\n\ndf = pd.read_csv('dqthon-participants.csv')\ndf.sample(10)''', language='python')
+    st.code('''
+    import pandas as pd
+    df = pd.read_csv('dqthon-participants.csv')
+    df.sample(10)''', language='python')
+
     st.write(df.sample(10))
 
     # Dataset Description
@@ -39,3 +43,21 @@ def app():
     st.markdown("### **Mengecek Data Kosong**")
     st.code('''df.isna().sum()''', language='python')
     st.write(df.isna().sum())
+
+    st.markdown("### **Mengecek Nilai Unik Data Kategorikal**")
+
+    st.code(''' categorical = df.select_dtypes(include=[object]).columns.tolist()''', language='python')
+    categorical = df.select_dtypes(include=[object]).columns.tolist()
+    st.write(categorical)
+
+    st.code(''' 
+    for cat in categorical:
+        st.write(f'Jumlah Value Uniqe {cat} : {len(df[cat].value_counts())}')
+        st.write(df[cat].value_counts().head(10))
+    ''', language='python')
+    for cat in categorical:
+        st.write(f'Jumlah Value Uniqe {cat} : {len(df[cat].value_counts())}')
+        st.write(df[cat].value_counts().head(10))
+
+    # for cat in categorical:
+    #     st.write(df[cat].value_counts())

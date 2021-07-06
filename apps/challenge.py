@@ -77,6 +77,21 @@ def trend_negara(df):
 
     st.write(country)
 
+    st.code("""
+    country = country.head(10)
+    fig = px.bar(country, x="Jumlah", y="Negara", color="Negara", text="Jumlah", orientation="h")
+    fig.update_layout(
+        xaxis=dict(
+            tickmode='linear',
+            dtick=2
+        ),
+        showlegend=False,
+        height=500,
+        width=900,
+        title="Tren 10 Besar Negara",
+    )
+    """, language='python')
+
     country = country.head(10)
     fig = px.bar(country, x="Jumlah", y="Negara", color="Negara", text="Jumlah", orientation="h")
     fig.update_layout(
@@ -91,12 +106,22 @@ def trend_negara(df):
     )
     st.plotly_chart(fig)
     
+    st.code("""
     fig = px.pie(country, values='Jumlah', names='Negara', title='Persentase 10 Terbesar Negara Pendaftar')
     fig.update_traces(textposition='inside', textinfo='percent+label')
     fig.update_layout(
         height=500,
         width=900,
         title="Tren 10 Besar Negara",
+    )
+    """, language='python')
+
+    fig = px.pie(country, values='Jumlah', names='Negara', title='Persentase 10 Terbesar Negara Pendaftar')
+    fig.update_traces(textposition='inside', textinfo='percent+label')
+    fig.update_layout(
+        height=500,
+        width=900,
+        title="Persentase Tren 10 Besar Negara",
     )
     st.plotly_chart(fig)
 
@@ -120,6 +145,7 @@ def trend_kota(df):
     city["Persentase"] = city["Persentase"].apply(convert_percent)
     st.write(city)
 
+    st.code("""
     city = city.head(10)
     fig = px.bar(city, x="Jumlah", y="Kota", color="Kota", text="Jumlah", orientation="h")
     fig.update_layout(
@@ -132,28 +158,43 @@ def trend_kota(df):
         width=900,
         title="Tren Kota Pendaftar",
     )
+    """, language='python')
+
+    city = city.head(10)
+    fig = px.bar(city, x="Jumlah", y="Kota", color="Kota", text="Jumlah", orientation="h")
+    fig.update_layout(
+        xaxis=dict(
+            tickmode='linear',
+            dtick=5
+        ),
+        showlegend=False,
+        height=500,
+        width=900,
+        title="Persentase Tren Kota Pendaftar",
+    )
 
     st.plotly_chart(fig)
+
+    st.code("""
+    fig = px.pie(df, values=city['Jumlah'], names=city['Kota'], title='Persentase Kota 10 Terbesar Kota Pendaftar')
+    fig.update_traces(textposition='inside', textinfo='percent+label')
+    fig.update_layout(
+        height=500,
+        width=900,
+        title="Persentase 10 Besar Kota Pendaftar",
+    )
+    """, language='python')
 
     fig = px.pie(df, values=city['Jumlah'], names=city['Kota'], title='Persentase Kota 10 Terbesar Kota Pendaftar')
     fig.update_traces(textposition='inside', textinfo='percent+label')
     fig.update_layout(
         height=500,
         width=900,
-        title="Tren 10 Besar Negara",
+        title="Persentase 10 Besar Kota Pendaftar",
     )
     st.plotly_chart(fig)
 
-def app():
-    # Load Dataset
-    df = load_data()
-
-    st.markdown("## **Challenge Exploration**")
-    
-    trend_pekerjaan(df)
-    trend_negara(df)
-    trend_kota(df)
-    
+def age_distribution(df):
     st.markdown("### **4. Pembagian Umur Berdasarkan Pekerjaan**")
     st.code('''
     def get_age(born):
@@ -193,6 +234,7 @@ def app():
 
     choose_age = st.slider('Silahkan Pilih Umur', 18, 32, 18)
 
+    st.code('''
     age = df.loc[lambda df: df['umur'] == choose_age]
     age = dict(age.occupation.value_counts())
     age = sorted(age.items(), key=lambda item: item[1], reverse=True)
@@ -209,16 +251,65 @@ def app():
         width=900,
         title=f"Tren Pekerjaan Berdasarkan Umur {choose_age}",
     )
+    ''', language='python')
+
+    age = df.loc[lambda df: df['umur'] == choose_age]
+    age = dict(age.occupation.value_counts())
+    age = sorted(age.items(), key=lambda item: item[1], reverse=True)
+    age = pd.DataFrame(list(age), columns=["Pekerjaan", "Jumlah"])
+
+    fig = px.bar(age, x="Jumlah", y="Pekerjaan", color="Pekerjaan", text="Jumlah", orientation="h")
+    fig.update_layout(
+        xaxis=dict(
+            tickmode='linear',
+            dtick=2
+        ),
+        showlegend=False,
+        height=500,
+        width=900,
+        title=f"Tren Pekerjaan Berdasarkan Umur {choose_age}",
+    )
+
     st.plotly_chart(fig)
+
+
+def app():
+    # Load Dataset
+    df = load_data()
+
+    st.markdown("## **Challenge Exploration**")
+    
+    trend_pekerjaan(df)
+    trend_negara(df)
+    trend_kota(df)
+    age_distribution(df)
 
     st.markdown("### **5. Tren Waktu Registrasi Pengguna**")
     st.code('''
-    def get_age(born):
-        today = date.today()
-        return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-    
-    df["Umur"] = pd.to_datetime(df["birth_date"]).apply(get_age)
-    umur = df.groupby(["occupation", "Umur"])["occupation"].agg(["count"])
+    def convertToRealDate(timestamp):
+        dt_object = datetime.fromtimestamp(timestamp)
+        return dt_object
+
+    df["realDate"] = df["register_time"].apply(convertToRealDate)
+    df["hour"] = df["realDate"].dt.hour
+    df["minute"] = df["realDate"].dt.minute
+    df["seconds"] = df["realDate"].dt.second
+    df["hour"].unique()
+
+    df["minute:sec"] = df["minute"].astype("str") + ":" + df["seconds"].astype("str")
+    groupedMinuteSec = df.groupby("minute:sec")["seconds"].agg(["count"])
+
+    fig = px.line(data_frame=groupedMinuteSec, x=groupedMinuteSec.index.get_level_values(0), y='count')
+    fig.update_layout(
+        yaxis=dict(
+            tickmode='linear',
+            dtick=5
+        ),
+        showlegend=False,
+        height=500,
+        width=1200,
+        title="Tren Waktu Registrasi",
+    )
     ''', language='python')
 
     def convertToRealDate(timestamp):
@@ -250,18 +341,31 @@ def app():
 
     st.markdown("### **6. Jumlah Pendaftar Berdasarkan Kampus**")
     st.code('''
-    def get_age(born):
-        today = date.today()
-        return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-
-    df["Umur"] = pd.to_datetime(df["birth_date"]).apply(get_age)
-    umur = df.groupby(["occupation", "Umur"])["occupation"].agg(["count"])
+    institute = dict(df.institute.value_counts())
+    institute = sorted(institute.items(), key=lambda item: item[1], reverse=True)
+    institute = pd.DataFrame(list(institute), columns=["Institusi", "Jumlah"])
+    st.write(institute)
     ''', language='python')
 
     institute = dict(df.institute.value_counts())
     institute = sorted(institute.items(), key=lambda item: item[1], reverse=True)
     institute = pd.DataFrame(list(institute), columns=["Institusi", "Jumlah"])
     st.write(institute)
+
+    st.code('''
+    institute = institute.head(15)
+    fig = px.bar(institute, x="Jumlah", y="Institusi", text="Jumlah", color="Institusi", orientation="h")
+    fig.update_layout(
+        xaxis=dict(
+            tickmode='linear',
+            dtick=2
+        ),
+        showlegend=False,
+        height=600,
+        width=900,
+        title="Tren Institusi",
+    )
+    ''', language='python')
 
     institute = institute.head(15)
     fig = px.bar(institute, x="Jumlah", y="Institusi", text="Jumlah", color="Institusi", orientation="h")
