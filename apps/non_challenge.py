@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-
+from iso3166 import countries
+import numpy as np
 
 def load_df():
     df = pd.read_csv('https://raw.githubusercontent.com/ShinyQ/Dataset-DQThon/main/dqthon-participants.csv')
@@ -129,4 +130,66 @@ def app():
     st.markdown("## **Non-Challenge Exploration**")
 
     tren_pekerjaan(df)
-    tren_institusi(df)        
+    tren_institusi(df)          
+
+    st.markdown("### **3. Persebaran Pendaftar Berdasarkan Negara Pada Peta**")
+    st.code('''
+    def rename(country):
+        try:
+            return countries.get(country).alpha3
+        except:
+            return (np.nan)
+
+    def rename_country(country):
+        try:
+            return countries.get(country).name
+        except:
+            return (np.nan)
+
+    df['country_code'] = df['country'].apply(rename)
+    df = df.dropna()
+
+    country_df = pd.DataFrame(data=[df['country_code'].value_counts().index, df['country_code'].value_counts().values], index=['country', 'count']).T
+    country_df['count'] = pd.to_numeric(country_df['count'])
+    country_df['country_name'] = country_df['country'].apply(rename_country)
+    ''', language='python')
+
+    def rename(country):
+        try:
+            return countries.get(country).alpha3
+        except:
+            return (np.nan)
+
+    def rename_country(country):
+        try:
+            return countries.get(country).name
+        except:
+            return (np.nan)
+
+    df['country_code'] = df['country'].apply(rename)
+    df = df.dropna()
+
+    country_df = pd.DataFrame(data=[df['country_code'].value_counts().index, df['country_code'].value_counts().values], index=['country', 'count']).T
+    country_df['count'] = pd.to_numeric(country_df['count'])
+    country_df['country_name'] = country_df['country'].apply(rename_country)
+    
+    st.write(country_df)
+
+    st.code('''
+    fig = px.scatter_geo(country_df, locations="country", size='count', hover_name="country", color='country', projection="natural earth")
+    fig.update_layout(
+        showlegend=True,
+        height=600,
+        width=900,
+        title=f"Persebaran Pendaftar Berdasarkan Negara",
+    )
+    ''', language='python')
+
+    fig = px.scatter_geo(country_df, locations="country", size='count', hover_name="country_name", color='country_name', projection="natural earth")
+    fig.update_layout(
+        showlegend=True,
+        height=600,
+        width=1000,
+        title=f"Persebaran Pendaftar Berdasarkan Negara",
+    )
+    st.plotly_chart(fig)
