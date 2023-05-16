@@ -5,7 +5,7 @@ import plotly.express as px
 from datetime import *
 
 
-@st.cache(allow_output_mutation=True)
+
 def load_data():
     df = pd.read_csv('https://raw.githubusercontent.com/ShinyQ/Dataset-DQThon/main/dqthon-participants.csv')
     return df

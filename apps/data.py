@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 import io
 
-@st.cache
+
 def load_data():
-    data = pd.read_csv('https://raw.githubusercontent.com/ShinyQ/Dataset-DQThon/main/dqthon-participants.csv')
+    data = pd.read_csv('./dqthon-participants.csv')
     return data
 
 
